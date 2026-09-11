@@ -1,133 +1,46 @@
-# Рівень 2 — Результати
+# Рівень 2 — результати консольної діагностики
 
-## Приклад очікуваного виведення програми
+> Результати нижче є знімком конкретних запусків. Час, IP-адреси та заголовки публічних сервісів можуть змінюватися.
 
-### === ЗАПИТ ДО АВТОРИЗОВАНОГО РЕСУРСУ ЧЕРЕЗ CURL ===
+## 1. Авторизація через Bearer-токен
+
+Виконано POST-запит до `/auth/login` з обліковими даними `emilys` / `emilyspass`. Сервер повернув `200 OK`, `accessToken` та дані користувача. Отриманий токен передано до `/auth/me` через `Authorization: Bearer <TOKEN>`; захищений запит також завершився успішно.
+
+Токени не дублюються в цьому підсумку, щоб не поширювати облікові дані.
+
+## 2. Базові curl-операції
+
+### GET /users
+
+```bash
+curl -i "https://dummyjson.com/users?limit=2&select=firstName,email"
+```
+
+Результат: `200 OK`, повернуто два користувачі та вибрані поля `firstName`, `email`.
+
+### POST /posts/add
+
+Фактичний перший запуск:
 
 ```text
-> POST /auth/login HTTP/1.1
-> Host: dummyjson.com
-> Content-Type: application/json
-> Accept: application/json
-
-< HTTP/1.1 200 OK
-< Content-Type: application/json; charset=utf-8
-< Connection: keep-alive
-
-{
-  "id": 1,
-  "username": "emilys",
-  "email": "emily.johnson@x.dummyjson.com",
-  "firstName": "Emily",
-  "lastName": "Johnson",
-  "gender": "female",
-  "image": "https://dummyjson.com/icon/emilys/128",
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
+HTTP/2 400
+{"message":"User id is required"}
 ```
 
-### === ПЕРЕВІРКА МЕТРИК ПРОДУКТИВНОСТІ МЕРЕЖЕВОГО З'ЄДНАННЯ ===
+Перший запуск завершився помилкою через зайвий пробіл у значенні заголовка `Content-Type`. Правильна команда та пояснення наведені у [t_2_1.md](t1/t_2_1.md). Цей результат не можна подавати як успішний `201 Created` без повторної перевірки.
 
-```text
-DNS Lookup: 0.014210s
-TCP Connect: 0.048512s
-TLS Handshake: 0.092140s
-Time To First Byte (TTFB): 0.185210s
-Total Transaction Time: 0.215430s
-```
+## 3. Заголовки та статуси
 
-### === БАЗОВІ CURL ОПЕРАЦІЇ ===
+`curl -I https://dummyjson.com/products` повернув `200 OK` і заголовки `content-type`, `etag`, `cache-control`, `server: cloudflare` та `strict-transport-security`.
 
-#### GET запит — отримання користувачів
+Запити до `https://httpbin.org/status/404` і `https://httpbin.org/status/500` повернули відповідно `404 Not Found` і `500 Internal Server Error`.
 
-```bash
-$ curl -i "https://dummyjson.com/users?limit=2&select=firstName,email"
+## 4. Метрики
 
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-Transfer-Encoding: chunked
+| DNS | TCP | TLS | TTFB | Загальний час |
+|---:|---:|---:|---:|---:|
+| 0.027689 с | 0.057328 с | 0.089722 с | 0.133509 с | 0.138653 с |
 
-{
-  "users": [
-    {
-      "id": 1,
-      "firstName": "Emily",
-      "email": "emily.johnson@x.dummyjson.com"
-    },
-    {
-      "id": 2,
-      "firstName": "Michael",
-      "email": "michael.williams@x.dummyjson.com"
-    }
-  ],
-  "total": 2,
-  "skip": 0,
-  "limit": 2
-}
-```
+## Висновок
 
-#### POST запит — додавання посту
-
-```bash
-$ curl -X POST "https://dummyjson.com/posts/add" \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Test Post","userId":1}'
-
-HTTP/1.1 201 Created
-Content-Type: application/json; charset=utf-8
-
-{
-  "id": 101,
-  "title": "Test Post",
-  "userId": 1
-}
-```
-
-### === АНАЛІЗ ЗАГОЛОВКІВ БЕЗ ТІЛА ===
-
-#### curl -I для /products
-
-```bash
-$ curl -I https://dummyjson.com/products
-
-HTTP/1.1 200 OK
-Date: Fri, 11 Sep 2026 17:33:14 GMT
-Content-Type: application/json; charset=utf-8
-Content-Length: 44346
-Connection: keep-alive
-etag: W/"ac3a-Q0j5X7Zb/GG4CpZwhP3POutAwN4"
-cache-control: no-store
-server: cloudflare
-```
-
-#### Статус 404
-
-```bash
-$ curl -i https://httpbin.org/status/404
-
-HTTP/1.1 404 NOT FOUND
-Content-Type: text/html; charset=utf-8
-Content-Length: 0
-```
-
-#### Статус 500
-
-```bash
-$ curl -i https://httpbin.org/status/500
-
-HTTP/1.1 500 INTERNAL SERVER ERROR
-Content-Type: text/html; charset=utf-8
-Content-Length: 0
-```
-
----
-
-## Висновки рівня 2
-
-✅ GET запити з параметрами передаються через URL  
-✅ POST запити передають JSON тіло з -d флагом  
-✅ -i флаг показує заголовки + тіло  
-✅ -I флаг показує тільки заголовки (HEAD запит)  
-✅ Статус коди коректно повертаються (200, 201, 404, 500)  
-✅ Автентифікація через Bearer токен працює  
-✅ Мережеві метрики вимірюються -w форматом  
+Підтверджено роботу GET-запитів, передачу JSON через `-d`, виведення заголовків через `-i` та `-I`, Bearer-авторизацію і вимірювання часу через `-w`. Для POST-запиту зафіксовано помилку оформлення заголовка та підготовлено виправлену команду.

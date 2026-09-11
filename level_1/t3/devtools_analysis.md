@@ -15,6 +15,7 @@
 |-----------|----------|
 | content-type | application/json; charset=utf-8 |
 | date | Fri, 11 Sep 2026 17:33:14 GMT |
+| server | cloudflare |
 | etag | W/"ac3a-Q0j5X7Zb/GG4CpZwhP3POutAwN4" |
 
 ## Request Headers

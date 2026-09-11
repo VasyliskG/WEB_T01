@@ -1,4 +1,11 @@
+### Level 1 Task 2: POST запит на створення нового товару
+# Метод: POST
+# Очікуваний результат: 201 Created
+# Аналіз: код статусу, згенерований id, структура відповіді
+# Тіло: JSON об'єкт з полями title та price
+
 POST https://dummyjson.com/products/add
+Content-Type: application/json
 
 {
   "title": "Essence Mascara Lash Princess",

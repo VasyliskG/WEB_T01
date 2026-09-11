@@ -1,4 +1,11 @@
+### Level 1 Task 3: PUT запит на оновлення товару
+# Метод: PUT
+# Очікуваний результат: 200 OK
+# Аналіз: поле title оновлено, інші поля залишилися незмінними
+# Тіло: JSON об'єкт з новим значенням title
+
 PUT https://dummyjson.com/products/1
+Content-Type: application/json
 
 {
     "title": "Updated Title"

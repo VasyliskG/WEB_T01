@@ -1,0 +1,6 @@
+POST https://dummyjson.com/products/add
+
+{
+  "title": "Essence Mascara Lash Princess",
+  "price": 9.99
+}

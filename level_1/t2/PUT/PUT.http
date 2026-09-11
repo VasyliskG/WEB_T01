@@ -1,0 +1,5 @@
+PUT https://dummyjson.com/products/1
+
+{
+    "title": "Updated Title"
+}
